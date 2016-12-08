@@ -1,0 +1,82 @@
+• What is the Internal Web system ?
+	- It is the Website inside the company or organization, 	needs only network, server (Internal Hosting) of the 	company or organization to communicate within company or 	organization itself.
+• What is the Human Resource ?
+	- The group of people (or department) who recruiting, hiring 	or positioning the staff inside company or organization and 	also manage things that involve with staff (e.g. Salary, 	Leave Record, Training, Welfare, Appraisal).
+•  How Human Resource and Internal Web system is related ? 
+	- It is related by all task of Human Resource that involved 	with record or data, it is hard to fetch some information if 	the data was not well kept and categorized (Imagine if you 	want to find someone record about “Overtime” on the pile 	of paper you would be upset for sure).
+	- So Internal Web system is one option as a key role to 	manage the task that involved with record or data, this 	option is better than keep all record inside one cabinet, so 	when you want to find someone record you could do it in a 	less than minute.
+•  But there is no Pros without Cons.
+    - Pros of Old-Fashioned	
+	1. Record can be used all the time without concerning 		   about IT system failure or Permission penetrate (because 	   all record is belonged by HR).
+	2. Easy to record something that will be used in the future.
+    - Cons of Old-Fashioned
+	1. Record is hard to search when it is not used for long 	    time.
+	2. All record must be well treated or else it would be 	unusable and to be well treated, it means more costing.
+	
+•  But there is no Pros without Cons (Cont.).
+	- Pros of Internal Web system
+	1. Easy to find some records that you interesting in, even if 	they were recorded long time ago.
+	2. No need to well treated all record, only need regularity 	system maintaining.
+	3. Information sharing is possible, depends on function.
+	4. Cost of Maintenance is less than Cost of Old-Fashioned 	record treated when they are compared.
+  •  But there is no Pros without Cons (Cont.).
+	- Cons of Internal Web system
+	1. If IT System Failure all record (if all record is in the 		system) would be temporary unusable or if the failure could 	not recover all record is permanent lost, need to backup all 	record every time (maybe monthly).
+	2. Has a risk of permission penetrate if function was not 	well optimized (e.g. Salary information).
+•  Scheduled plan for this Project
+	1. Investigate the requirement (1 week)
+	2. Design (GUI, Logic flow, Draft Basic Design) (3 weeks)
+	3. Start coding the module (6 weeks)
+	4. Do a test session and complete Basic Design (2 weeks)
+	5. Revised the Module and Conclusion (4 weeks)
+•  Study Limitation in this Project
+	1. Function is based on requested of Human Resource.
+	2. System will be used only inside Company (TTET)
+•  System specification environment
+	- Front-end development Language: HTML + CSS + 	JavaScript (AJAX, jQuery)
+	- Back-end development Language: PHP
+	- Framework: OOP, Codeigniter, Smarty
+	- Used Model View Controller (MVC) as a structure
+	- Database development Language: MSSQL (Transact-	SQL)
+	- Develop under the environment of XAMPP (Apache)
+•  What is HTML, CSS, JavaScript ?
+	- HTML is stand for Hyper Text Markup Language, which is 	displaying on website platform based on tag that you 	wrote, mostly HTML is used for template.
+	- CSS is stand for Cascade Style Sheet, which is used with 	HTML for decorating the page into better view, and easy to 	decorate more than putting individual style in each tag 	itself (just named it with Class or ID and the tag would be 	decorated by CSS set).
+•  What is HTML, CSS, JavaScript (Cont.) ?
+	- JavaScript is a language that makes page more 	dynamically, because HTML is static if you want to change 	style of page then you have to create multiple of HTML for 	one page. So JavaScript is the solution to make your 	HTML dynamically based on your coding 
+	- AJAX and jQuery are libraries for JavaScript to code 	easier than pure JavaScript
+	- AJAX for send information (data) to PHP and jQuery for 	make page dynamically
+•  What is PHP ?
+	- PHP is Server-side scripting language, when client 	requesting the information, PHP will preprocessing and 	return information to client
+	- PHP need application runtime to process scripting, it 	can’t be run by itself without application runtime unlike the 	HTML which is just a markup language
+•  What is Framework ?
+	- Before Framework will be explained, We have to know 	how to create some PHP file.
+	- We can create PHP file by coding something up and make	extension .php and use application runtime to process it.
+	- In .php file we can use HTML , JavaScript inside at once 	and run, all information and method would be run and show.
+	- But If we coded all in one place it would be hard to	maintain and debug
+•  What is Framework (Cont.) ?
+	- Solution is Framework, Framework is tool to connect 	a 	piece of code together, seeing the code as an 		“Object-Oriented Programming”, you create each function 	as you want and you bind all of them into one system.
+	- Here is an example : if you have 10 functions in your only 	one .php file, when debugging it you would mess up your 	code and maybe end up parse error in another function (all 	system function is error)
+	- But if you have 10 functions and separate them individual	.php file, when debugging it you would mess up only one 	function and the other remains same.
+	 
+•  What is Framework (Cont.) ?
+	- Codeigniter is one of framework in web development, and 	easy to manage, create library for system
+	- Smarty is framework for HTML template library for 	Codeigniter, to assigned information into client-side, so 	developer don’t have to know both front-end and back-	end knowledge, just only one of them is sufficient.
+•  What is MVC (Model – View – Controller) ?
+	- After PHP file is separated by Codeigniter, We need to 	assign task for each function.
+	- Model is a task to communicate with Database server 	like SQL (PHP).
+	- View is a task to send client-side displaying to client 	(HTML).
+	- Controller is a task to communicate system itself 	between Model and View, it also take information from 	client-side to Model 	and get Data from Model to client-side 	(PHP).
+•  What is MSSQL ?
+	- MSSQL is stand for Microsoft Structured Query 	Language, to use with Database Server.
+	- MSSQL is just a language not database, it use to fetch 	data by input command and maybe joining table together, to 	fetch the relation between the number id and its meaning in 	another table.
+	- MSSQL is used by Model in MVC.
+•  What is XAMPP ?
+	- XAMPP is Environment setup for server-side
+	- XAMPP is used to open Apache HTTP server, and start 	PHP Application runtime
+	- If we do not use XAMPP, we have to config each of them 	( Apache and PHP Application runtime) by ourselves.
+	- It is hard to optimize and make it run seamless.
+•  Development Strategy
+	- Waterfall-Model
+	- V-Model
+	
