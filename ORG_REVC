@@ -1,0 +1,736 @@
+/******************** TYTLE **********************
+
+                 "MLINK3.C"
+
+********************** USE ***********************
+
+    MELSEC <-> PC9801 LINK Experiment
+    USING TEX_0,1,2 (one SEND and CATCH)
+    SPECIAL EDITION
+    (MELSEC DEBUG SPECIAL)
+
+*********************** BY ***********************
+
+
+********************* OPTION *********************
+
+    USING MRS .obj (my rs232-c source)
+          MIT1.obj (my tool-1  source)
+          MEL.obj  (MELSEC UTILITY FUNCTION source)
+    make  MLINK3.MAK
+
+******************** HISTORY *********************
+
+1990.4.18            MADE(DD1.C)
+     5.15            tex_* タイオウ
+
+
+**************************************************/
+
+
+
+
+#include <dos.h>
+#include <stdio.h>
+#include <memory.h>
+#include <time.h>
+#include <mrs.h>
+#include <mit1.h>
+#include <mel.h>
+#include <process.h>
+#include <string.h>
+
+
+#define WAIT 1                                  /* ケイサンキ ガワ マチジカン */
+#define START_RENBAN 0                          /* レンバン ショキチ */
+#define FILENAME "meldata.txt"                  /* データ(text2)ファイル */
+#define MENU_N 7                                /* メニユー ノ カズ */
+
+static unsigned char dwfname[15];               /* データ ファイル(イレコ) */
+
+static unsigned char dwtext2[12*4+1];               /* データ ファイル(イレコ) */
+
+
+int tex_1_len = 17;                             /* text1 チョウ */
+
+int tex_2_len = 13;                             /* text2 チョウ */
+
+int iren = 0;                                   /* レンゾク オクリヨウ */
+
+int irenban = START_RENBAN;                     /* デンブンレンバン */
+
+
+
+
+
+int call_melsec(style,ccc)
+int style;                                      /* テンソウ スタイル   */
+unsigned char ccc[200];                         /* キャラクター   */
+{
+
+    unsigned char send_d[250];          /* ソウシンホンタイ */
+
+/*********   カキコミ   ***********/
+    static unsigned char ww[7] = "00FFWW";      /* ワード タンイ */
+    static unsigned char bw[7] = "00FFBW";      /* ビット タンイ */
+
+
+/*********   ヨミダシ  ***********/
+    static unsigned char wr[7] = "00FFWR";      /* ワード タンイ               */
+    static unsigned char br[7] = "00FFBR";      /* ビット タンイ               */
+
+
+    static unsigned char sum[3];                /* サムチェック                 */
+    static unsigned char r_sum[3];              /* ヘンシン リターン サムチェック       */
+    static unsigned char r_type[200];           /* リターン コード ナイヨウ     */
+
+    unsigned char c;
+    unsigned char r_code;                       /* リターン コード              */
+    
+    
+    int scr = 0;                                /* サム チェック カンスウ リターン      */
+    int result = 0;                             /* ケッカ (1=ACK,2=NAK,3=ERR)*/
+    int s_style = 0;                            /* サム チェック ヒカク ケッカ        */
+    int i = 0;
+    int num = 0;
+    int y_len = 0;
+    int ikk = 0;
+    int idm;
+
+/*************   PROGRAM   ****************/
+
+    cls_t(3);
+    
+    strset(send_d,0x00);
+
+    rs_melsec();
+
+
+    if(iren == 0){
+
+        printf("\n\n ＥＳＣ キーで送信開始します \n");
+    
+        c = 0;
+        while(1){
+                c = keyin();
+                if(c == 0x1b) break;
+                c = 0x00;
+        }
+    }
+
+    else{
+        printf("\n\n 送信開始します \n");
+        idm = 0;
+        while(idm >= 500){
+             idm++;
+        }
+    }
+
+
+
+
+    
+    switch(style){
+
+        case 1: strcpy(send_d,bw);
+                break;
+        
+        case 2: strcpy(send_d,ww);
+                break;
+        
+        case 4: strcpy(send_d,br);
+                break;
+        
+        case 5: strcpy(send_d,wr);
+                break;
+        
+    }
+
+    strcat(send_d,ccc);
+    scr = check_sum(send_d,sum);
+
+    
+    strcat(send_d,sum);
+    strcat(send_d,0x00);
+
+    rs_out1(0x05);
+
+    i = 0;
+    while(send_d[i] != 0x00){
+        rs_out1(send_d[i]);
+        i++;
+    }
+
+    printf("\n 送信完了、文字数  =  %d\n",i);
+
+    wait_t(WAIT);
+
+
+
+/************************  MELSEC deta カキコミ  ************************/
+
+    if((style == 1) || (style == 2)){
+
+        num = rs_inn(1,&r_code);
+
+            if(r_code == 0x06){     /*    catch ACK   */
+            printf("\n ＡＣＫ（正常返信）を受け取りました。");
+            num = rs_inn(4,r_type);
+            result = 1;
+        }
+    
+        if(r_code == 0x15){     /*    catch NAK   */
+            printf("\n ＮＡＫ（異常返信）を受け取りました。");
+            num = rs_inn(6,r_type);
+            result = 2;
+        }
+        else if((r_code != 0x06) && (r_code != 0x15)){
+            printf("\n 変なコードを受け取りました。コード＝ %c",r_code);
+            wait_key(1);
+            rs_close();
+            return(3);
+            
+        }
+    
+    
+        printf(" \nリターンコード＝ %c",r_code);
+        for(i=0; i <= num-1 ;i++){
+    
+            printf(" \n %d 番目のリターンコード＝ %c",i,r_type[i]);
+        }
+
+    if(result != 1) {
+        wait_key(1);
+    }
+
+    else{
+        wait_t(1);
+    }
+
+    rs_close();
+    return(result);
+    }
+
+
+
+/************************  MELSEC deta ヨミコミ  ************************/
+
+    if((style == 4) || (style == 5)){
+
+        r_code = (unsigned char)rs_in1();
+
+        if(r_code == 0x02){                         /*    catch STX   */
+            printf("\n 正常返信を受け取りました ");
+            result = 1;
+        }
+        else {
+            printf("\n 変なコードを受け取りました。コード＝ %c",r_code);
+            printf("\n ＮＡＫコードをおくります");
+            send_return(0);                         /* return NAK */
+            wait_key(1);
+            rs_close();
+            return(3);
+        }
+
+
+        num = rs_insd(0x03,r_type);
+
+        scr = check_sum(r_type,sum);
+
+        for(i=0; i<2; i++){
+            r_sum[i] = rs_in1();
+        }
+        r_sum[2] = 0x00;
+
+        if((s_style = (strcmpi(sum,r_sum))) != 0){
+            printf("\n チェックサムが違います \n");
+            printf("\n ＮＡＫコードをおくります");
+            send_return(0);                         /* return NAK */
+            wait_key(1);
+            rs_close();
+            return(3);
+        }
+        
+        printf(" \n リターンコード＝ %c",r_code);
+        printf(" \n 局番          ＝ %c%c",r_type[0],r_type[1]);
+        printf(" \n ＰＣ番号      ＝ %c%c\n\n",r_type[2],r_type[3]);
+
+        wait_t(1);
+        i = 4;
+        y_len = 0;
+        ikk = 1;
+        cls_t(3);
+        locate(0,0);
+        if(style == 4){
+            while(1){
+                if(r_type[i+1] == 0x03){
+                    printf(" \n %d 番目リターン＝ %c",i,r_type[i]);
+                    break;
+                }
+                printf(" \n %d 番目リターン＝ %c  |  %d 番目リターン＝ %c"
+                            ,i,r_type[i],i+1,r_type[i+1]);
+                i = i + 2;
+                if(r_type[i] == 0x03) break;
+                y_len++;
+                if(y_len >= 18){
+                    y_len = 0;
+                    wait_key(1);
+                    cls_t(3);
+                    locate(0,0);
+                }
+            }
+        
+        }
+
+
+        else if(style == 5){
+            while(1){
+                printf("\n   リターン %d.....%c%c%c%c",
+                                            ikk,r_type[i],r_type[i++],
+                                            r_type[i++],r_type[i++]);
+                i++;
+                ikk++;
+                if(r_type[i] == 0x03) break;
+                y_len++;
+                if(y_len >= 18){
+                    y_len = 0;
+                    wait_key(1);
+                    cls_t(3);
+                    locate(0,0);
+                }
+            }
+        
+        }
+
+            
+
+
+
+
+        printf("\n ＡＣＫコードをおくります");
+        send_return(1);                             /* return ACK */
+        wait_key(1);
+        
+    rs_close();
+    return(result);
+    }
+
+}
+
+
+
+void status_mel()                   /* ステータス ヨミダシ */
+{
+    int status = 0;
+    int i;
+    int bit[8];
+
+    rs_melsec();
+
+
+    wait_t(WAIT);
+
+    status = rs_status();
+    
+    for(i=0;i<=7;i++){
+        bit[i] = bit_out(status,i);
+    }
+    
+    locate(13,15);
+    printf("\n       送信レディー       ＝ %x   受信レディー        ＝ %x "
+                            ,bit[0],bit[1]);
+    printf("\n       送信データ         ＝ %x   パリティエラー      ＝ %x "
+                            ,bit[2],bit[3]);
+    printf("\n       オーバーランエラー ＝ %x   フレーミングエラー  ＝ %x "
+                            ,bit[4],bit[5]);
+    printf("\n       ブレーク信号       ＝ %x   データセットレディー＝ %x "
+                            ,bit[6],bit[7]);
+
+    wait_key(1);
+    return;
+
+}
+
+void watch_menu()
+{
+    int i;
+
+    struct MENU_T{
+                int x;
+                int y;
+    } bi[MENU_N+2];
+
+    char *koumoku[MENU_N+2];
+
+
+    bi[0].x = 19;   bi[0].y = 2;
+    bi[1].x = 11;   bi[1].y = 4;
+    bi[2].x = 11;   bi[2].y = 6;
+    bi[3].x = 11;   bi[3].y = 8;
+    bi[4].x = 45;   bi[4].y = 4;
+    bi[5].x = 45;   bi[5].y = 6;
+    bi[6].x = 45;   bi[6].y = 8;
+    bi[7].x = 37;   bi[7].y = 11;
+
+    koumoku[0] = "ＭＥＬＳＥＣ  転送実験プログラム";
+    koumoku[1] = "１．  ビット単位書き込み";
+    koumoku[2] = "２．  ワード単位書き込み(tex2)";
+    koumoku[3] = "３．  通信データステータス読みだし";
+    koumoku[4] = "４．  ビット単位読み込み";
+    koumoku[5] = "５．  ワード単位読み込み(tex1)";
+    koumoku[6] = "６．　バッチ実行";
+    koumoku[7] = "選択して下さい （0 - 6 、０＝終了）";
+
+    for(i=0; i<=MENU_N; i++){
+        locate(bi[i].x,bi[i].y);
+        printf("%s",koumoku[i]);
+    }
+    return;
+}
+
+void input_para(style,code1)
+int style;
+unsigned char code1[50];
+{
+    int c = 0;
+    int cn = 0;
+    int wl = 0;
+    int i = 0;
+    int tex_2_style = 0;
+    int irulen = 0;
+
+    unsigned char fd[10];
+    unsigned char dd[200];
+    unsigned char tn[10];
+    unsigned char cvmp[200];
+    unsigned char dwp[2];
+    unsigned char zero_s;
+    unsigned char dw;
+    unsigned char *cvm;
+    unsigned char *tnn;
+    unsigned char *tnnr;
+    unsigned char *dwru;
+    unsigned char *dwrud1;
+    unsigned char *dwrud2;
+    
+
+    tnn  = (unsigned char *)malloc(3);
+    tnnr = (unsigned char *)malloc(3);
+    dwrud1= (unsigned char *)malloc(5);
+    dwrud2= (unsigned char *)malloc(5);
+
+    strset(dwru,0x00);
+
+    zero_s = 0x00;
+    cvm = &cvmp[0];
+    if(style==3){
+            status_mel();
+            return;
+    }
+
+    while(c != 1) {
+        tex_2_style = 0;
+        locate(13,15);
+        printf("コマンド＝");
+
+        locate(25,15);
+        if (style==1) printf("ＢＷ");
+        if (style==2) printf("ＷＷ");
+        if (style==4) printf("ＢＲ");
+        if (style==5) printf("ＷＲ");
+            dw = 0;
+            while(1){
+                locate(12,18);
+                printf("伝文ウエイト＝ ");
+                locate(31,18);
+                scanf("%c",&dw);
+                if((dw>= 0x30) && (dw<= 0x39)) break;
+                if((dw>= 0x41) && (dw<= 0x46)) break;
+                if((dw>= 0x61) && (dw<= 0x66)) break;
+                rewind(stdin);
+            }
+            
+            dwp[0] = dw;
+            dwp[1] = 0x00;
+            
+            while(1){
+                locate(12,20);
+                printf("先頭デバイス＝ ");
+                locate(31,20);
+                scanf("%s",fd);
+                wl = strlen(fd);
+                if(wl == 5) break;
+            }
+            cn = 0;
+            while(1){
+                locate(12,22);
+                printf("デバイス点数＝ ");
+                if(style == 2){
+                    locate(31,22);
+                    printf("%d",tex_2_len);
+                    cn = tex_2_len;
+                    break;
+                }
+                if(style == 5){
+                    locate(31,22);
+                    printf("%d",tex_1_len);
+                    cn = tex_1_len;
+                    break;
+                }
+                locate(31,22);
+                scanf("%d",&cn);
+                if((cn>0) && (cn<=255)) break;
+                
+            }
+            itoa(cn,tnn,16);
+            if(cn < 16) {
+                strcpy(tnnr,"0");
+                strcat(tnnr,tnn);
+                strcpy(tnn,tnnr);
+            }
+            tnn = strupr(tnn);
+            strcpy(tn,tnn);
+            rewind(stdin);
+            strset(dd,0x00);
+            if(style == 1){
+                    for(i=1; i<=cn; i++){
+                        locate(40,20);
+                        printf("データ %d   ＝ ",i);
+                        while(1){
+                            locate(56,20);
+                            scanf("%c",&dd[i-1]);
+                            if( (style == 1) &&
+                                     ((dd[i-1] == 0x30) || 
+                                            (dd[i-1] == 0x31)) ){
+                                            break;
+                            }
+                        }
+                        locate(56+i-1,22);
+                        printf("%c",dd[i-1]);
+                        rewind(stdin);
+                    }
+                dd[cn]=0x00;
+            }
+        else if(style == 2){
+            
+            strset(dd,0x00);
+            strset(dwrud1,0x00);
+            
+            strcpy(dwrud1,"000");
+
+            itoa(irenban,dwrud2,16);
+            
+            strcat(dwrud1,dwrud2);
+
+            strset(dwrud2,0x00);
+
+            irulen = strlen(dwrud1);
+
+            strcake(dwrud1,dwrud2,irulen - 3,irulen);
+
+            strcpy(dd,dwrud2);
+
+            strcat(dd,dwtext2);
+
+            locate(40,20);
+            printf("連番 ＝ %s",dwrud2);
+        }
+        locate(45,24);
+        printf("よろしいですか（ｙ／ｎ）");
+
+        while(1){
+            locate(72,24);
+            c = keyyn(1);
+            if((c == 1) || (c == 0)) break;
+        }
+
+    }
+
+    if(style == 2) irenban++;
+
+    strcpy(cvm,dwp);
+    strcat(cvm,fd);
+    strcat(cvm,tn);
+    strcat(cvm,dd);
+    cvm = strupr(cvm);
+    strcpy(code1,cvm);
+
+    return;
+}
+
+
+void input_batch()
+{
+    FILE *fdd;
+    unsigned char dwbname[40],
+                    dwxy[40],
+                    dwxyr[40],
+                    *dwsdata,
+                    dwsdata1[40],
+                    dwsdata2[40];
+
+
+    int rc,
+        c;
+        
+        
+    dwsdata = &dwsdata2[0];
+
+
+    while(1){
+        locate(13,15);
+        printf("バッチファイル = ");
+        locate(30,15);
+        fscanf(stdin,"%s",dwbname);
+
+        if(dwbname[0] == 0x51 || dwbname[0] == 0x71) break;
+
+        if((fdd=fopen(dwbname,"r"))==NULL) {
+            locate(13,17);
+            printf("ファイルが有りません");
+            strset(dwbname,0x00);
+            rewind(stdin);
+            continue;
+        }
+
+        else{
+
+            locate(13,17);
+            printf("転送を確認しますか(y/n)");
+
+            while(1){
+                locate(37,17);
+                c = keyyn(1);
+                if((c == 1) || (c == 0)) break;
+            }
+            if(c == 0){
+                iren = 1;
+            }
+
+            locate(13,17);
+            cls_t(6);
+
+            while (fscanf(fdd,"%s",dwxy)!= EOF){
+
+                if(dwxy[0]==0x40) {
+                    strset(dwxy,0x00);
+                    continue;
+                }
+
+                strset(dwsdata,0x00);
+                strset(dwxyr,0x00);
+                strset(dwsdata1,0x00);
+                strncpy(dwxyr,dwxy,5);
+
+                dwxyr[5]=0x00;
+
+                strcpy(dwsdata1,"0");
+                strcat(dwsdata1,dwxyr);
+                strcat(dwsdata1,"01");
+                strcat(dwsdata1,&dwxy[6]);
+                
+                locate(13,17);
+                printf("send addr. = %s",dwxyr);
+                locate(45,17);
+                printf("on / off  %c",dwxy[6]);
+                dwsdata = strupr(dwsdata1);
+                wait_t(2);
+                rc = call_melsec(1,dwsdata);
+        
+                if(rc != 1){
+                    close(*fdd);
+                    free(dwsdata);
+                    return;
+                }
+                strset(dwxy,0x00);
+            }
+            
+            break;
+
+        }
+    }
+
+
+    free(dwsdata);
+
+
+
+}
+
+
+
+
+
+
+void main(int argc,char *argv[])
+{
+    int style;
+    int rc;
+    int idrnd;
+    FILE *fd;
+    
+    unsigned char cc[200];
+
+    cls_func(1);
+
+    strset(dwfname,0x00);
+
+    strcpy(dwfname,FILENAME);
+    
+    if((fd=fopen(dwfname,"r"))==NULL) {
+        cls_t(3);
+        printf("\x1b[>1l");
+        locate(20,8);
+        printf("ＴＥＸＴ１，２用ファイルが見つかりません");
+        locate(29,11);
+        printf("終了します\n\n\n\n\n\n\n");
+        exit(-1);
+
+    }
+    else{
+
+        fscanf(fd,"%d",&idrnd);
+
+        idrnd = irenban % idrnd;
+
+        fd = fd + idrnd;
+
+        fscanf(fd,"%s",dwtext2);
+        
+        fclose(fd);
+
+        while(1){
+            cls_t(3);
+            style = 0;
+            watch_menu();
+            while(1){
+                locate(55,13);
+                style = getchar() - 0x30;
+                if((style >= 0) && (style <= 6)) break;
+            }
+
+            if(style == 0){
+                break;
+            }
+            else {
+                if(style == 6){
+                    input_batch();
+                    iren = 0;
+                }
+                else{
+                    input_para(style,cc);
+                    if(style != 3){
+                        rc = call_melsec(style,cc);
+                    }
+                }
+            }
+
+        }
+
+    }
+
+    cls_t(3);
+    printf("\x1b[>1l");
+    locate(29,11);
+    printf("終了します\n\n\n\n\n\n\n");
+}
