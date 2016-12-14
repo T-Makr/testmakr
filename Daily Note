@@ -1,0 +1,16 @@
+• Pros and Cons of Waterfall - Model Development Strategy
+    - Pros
+      1. Easy to understand process.
+      2. Easy to estimated deadline.
+      3. There is no revise backward.
+      4. Tear down project into a small piece and share each task to team member easily.
+    - Cons
+      1. If requirement changes, current process must be stopped and restart again.
+      2. Schedule usually delayed than expected schedule.
+      3. Not suitable with user that is not know about him/herself own requirement.
+      4. Not suitable with huge size of project.
+      5. Need a lot communication in team to set same understanding level.
+• V-Model
+  - It has two phases, One is verification phase and another one is validation phase, both phases are working in the same time.
+    1. Verification Phase
+       This phase is about define concept
